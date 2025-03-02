@@ -16,12 +16,13 @@ Este guia explica como configurar e fazer deploy do frontend da Rádio DoubleG n
 
 | Nome | Valor em Produção | Descrição |
 |------|-------------------|-----------|
-| `NEXT_PUBLIC_API_URL` | `https://api.radio-doubleg.com` | URL da API do backend |
-| `NEXT_PUBLIC_STREAM_URL` | `https://stream.radio-doubleg.com` | URL do servidor de streaming |
-| `NEXT_PUBLIC_ICECAST_HOST` | `stream.radio-doubleg.com` | Host do Icecast |
+| `NEXT_PUBLIC_API_URL` | `http://54.207.217.97:3000` | URL da API do backend |
+| `NEXT_PUBLIC_STREAM_URL` | `http://54.207.217.97:8000` | URL do servidor de streaming |
 | `NEXT_PUBLIC_LIVE_PASSWORD` | `senha-segura` | Senha para transmissão ao vivo (não use "hackme" em produção) |
 
 5. Clique em "Save" para salvar as variáveis
+
+**Observação**: Quando o backend tiver um domínio configurado, substitua os IPs pelos domínios correspondentes.
 
 ## Configuração de Build
 
@@ -46,10 +47,10 @@ Depois de fazer o deploy do frontend, você precisa configurar o backend para ac
 
 1. No arquivo `.env` do backend, atualize a variável `FRONTEND_URL`:
    ```
-   FRONTEND_URL=https://radio-doubleg.vercel.app,https://www.radio-doubleg.com
+   FRONTEND_URL=https://radiodoubleg.vercel.app
    ```
 
-2. Se você estiver usando múltiplos domínios, separe-os por vírgula como mostrado acima
+2. **Importante**: O backend está configurado para aceitar apenas este domínio específico. Se você mudar o domínio ou adicionar domínios adicionais, precisará atualizar a configuração de CORS no backend.
 
 3. Reinicie o servidor backend para aplicar as alterações
 
@@ -68,6 +69,7 @@ Se encontrar problemas com WebSockets:
 1. Verifique se as variáveis de ambiente estão configuradas corretamente
 2. Certifique-se de que o backend está aceitando conexões do domínio da Vercel
 3. Verifique os logs do backend para erros de CORS
+4. Confirme que a URL no `.env` do backend corresponde exatamente ao domínio da Vercel (incluindo https:// e sem barra no final)
 
 Para problemas com o build:
 
