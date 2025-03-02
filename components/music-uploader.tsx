@@ -8,8 +8,13 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/components/ui/use-toast'
+import { cn } from '@/lib/utils'
 
-export function MusicUploader() {
+interface MusicUploaderProps {
+  className?: string;
+}
+
+export function MusicUploader({ className }: MusicUploaderProps = {}) {
   const [youtubeUrl, setYoutubeUrl] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -92,11 +97,7 @@ export function MusicUploader() {
   }
 
   return (
-    <Card>
-      <CardHeader className="border-b">
-        <h3 className="text-lg font-semibold">Adicionar música</h3>
-      </CardHeader>
-      
+    <Card className={cn("w-full", className)}>
       <CardContent className="p-4">
         <Tabs defaultValue="file">
           <TabsList className="grid w-full grid-cols-2">

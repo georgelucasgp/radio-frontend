@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Mic, Square } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
 
@@ -140,14 +140,10 @@ export function VoiceRecorder() {
 
   return (
     <Card>
-      <CardHeader className="border-b">
-        <h3 className="text-lg font-semibold">Gravação ao vivo</h3>
-        {error && (
-          <p className="text-sm text-red-500">{error}</p>
-        )}
-      </CardHeader>
-      
       <CardContent className="p-4">
+        {error && (
+          <p className="text-sm text-red-500 mb-4">{error}</p>
+        )}
         <div className="flex items-center gap-4">
           <Button
             variant={isRecording ? "destructive" : "default"}
