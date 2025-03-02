@@ -39,7 +39,7 @@ export function VoiceRecorder() {
         'audio/ogg',
       ]
       
-      let selectedMimeType = null
+      let selectedMimeType: string | null = null
       for (const type of mimeTypes) {
         if (MediaRecorder.isTypeSupported(type)) {
           selectedMimeType = type
@@ -67,11 +67,12 @@ export function VoiceRecorder() {
       mediaRecorder.onstop = async () => {
         try {
           console.log('Finalizando gravação e preparando envio...')
-          const audioBlob = new Blob(chunksRef.current, { type: selectedMimeType })
+          const mimeType = selectedMimeType || 'audio/webm'
+          const audioBlob = new Blob(chunksRef.current, { type: mimeType })
           console.log(`Tamanho total do áudio: ${audioBlob.size} bytes`)
           
           const formData = new FormData()
-          const fileExtension = selectedMimeType.includes('ogg') ? 'ogg' : 'webm'
+          const fileExtension = mimeType.includes('ogg') ? 'ogg' : 'webm'
           formData.append('audio', audioBlob, `audio.${fileExtension}`)
           
           console.log('Enviando áudio para o servidor...')

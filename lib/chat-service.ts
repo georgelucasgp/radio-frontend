@@ -16,11 +16,16 @@ class ChatService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 2000; // 2 segundos
-  private apiUrl: string;
+  private apiUrl: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
   private messageCache: Set<string> = new Set(); // Cache para evitar duplicação de mensagens
 
   constructor() {
-    this.apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    // Não inicializar o socket durante o build da Vercel
+    if (typeof window === 'undefined') {
+      console.log('Ambiente de servidor detectado, não inicializando socket');
+      return;
+    }
+
     this.initialize();
     
     // Tenta reconectar a cada 5 segundos se estiver desconectado
