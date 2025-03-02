@@ -18,7 +18,6 @@ Este guia explica como configurar e fazer deploy do frontend da Rádio DoubleG n
 |------|-------------------|-----------|
 | `NEXT_PUBLIC_API_URL` | `http://54.207.217.97:3000` | URL da API do backend |
 | `NEXT_PUBLIC_STREAM_URL` | `http://54.207.217.97:8000` | URL do servidor de streaming |
-| `NEXT_PUBLIC_LIVE_PASSWORD` | `senha-segura` | Senha para transmissão ao vivo (não use "hackme" em produção) |
 
 5. Clique em "Save" para salvar as variáveis
 
