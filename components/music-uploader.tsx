@@ -1,197 +1,91 @@
-"use client"
+import React, { useState, useRef } from 'react';
+import { Button, Slider, Box, Typography } from '@mui/material';
+import MicIcon from '@mui/icons-material/Mic';
+import StopIcon from '@mui/icons-material/Stop';
 
-import { useState, useRef } from 'react'
-import { Upload, Link, Loader2 } from 'lucide-react'
-import { Card, CardHeader, CardContent } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { useToast } from '@/components/ui/use-toast'
-import { cn } from '@/lib/utils'
+export const VoiceRecorder: React.FC = () => {
+  const [isRecording, setIsRecording] = useState(false);
+  const [volume, setVolume] = useState(0.8);
+  const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const chunks = useRef<BlobPart[]>([]);
 
-interface MusicUploaderProps {
-  className?: string;
-}
-
-export function MusicUploader({ className }: MusicUploaderProps = {}) {
-  const [youtubeUrl, setYoutubeUrl] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const { toast } = useToast()
-  
-  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    // Verifica se é um arquivo de áudio
-    if (!file.type.startsWith('audio/')) {
-      toast({
-        title: 'Erro!',
-        description: 'Por favor, selecione um arquivo de áudio válido',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    // Verifica o tamanho do arquivo (50MB)
-    const MAX_SIZE = 50 * 1024 * 1024;
-    if (file.size > MAX_SIZE) {
-      toast({
-        title: 'Erro!',
-        description: 'O arquivo não pode ser maior que 50MB',
-        variant: 'destructive',
-      })
-      return
-    }
-
-    setIsLoading(true)
-    const formData = new FormData()
-    formData.append('file', file)
-
+  const startRecording = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
-        method: 'POST',
-        body: formData,
-        // Importante: não enviar credentials para evitar problemas de CORS
-        credentials: 'omit',
-      })
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) {
+          chunks.current.push(e.data);
+        }
+      };
 
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao fazer upload');
-      }
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(chunks.current, { type: 'audio/mp3' });
+        const formData = new FormData();
+        formData.append('voice', audioBlob);
+        formData.append('volume', volume.toString());
 
-      console.log('Upload concluído com sucesso:', data);
+        try {
+          const response = await fetch(`${process.env.API_URL}/radio/stream`, {
+            method: 'POST',
+            body: formData,
+          });
 
-      toast({
-        title: 'Sucesso!',
-        description: 'Música adicionada à playlist',
-      })
-      e.target.value = ''
+          if (!response.ok) {
+            throw new Error('Falha ao enviar áudio');
+          }
+
+          console.log('Áudio enviado com sucesso!');
+          chunks.current = [];
+        } catch (error) {
+          console.error('Erro ao enviar áudio:', error);
+        }
+      };
+
+      mediaRecorder.current = recorder;
+      recorder.start();
+      setIsRecording(true);
     } catch (error) {
-      console.error('Erro no upload:', error)
-      toast({
-        title: 'Erro!',
-        description: error instanceof Error ? error.message : 'Falha ao adicionar música',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
+      console.error('Erro ao iniciar gravação:', error);
     }
-  }
+  };
 
-  const handleYoutubeUpload = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!youtubeUrl || isSubmitting) return
-
-    setIsSubmitting(true)
-    setIsLoading(true)
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/youtube`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ url: youtubeUrl }),
-        credentials: 'omit',
-      })
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Erro ao baixar do YouTube');
-      }
-
-      toast({
-        title: 'Sucesso!',
-        description: 'Música do YouTube adicionada à playlist',
-      })
-      setYoutubeUrl('')
-    } catch (error) {
-      console.error('Erro ao baixar do YouTube:', error)
-      toast({
-        title: 'Erro!',
-        description: error instanceof Error ? error.message : 'Falha ao adicionar música do YouTube',
-        variant: 'destructive',
-      })
-    } finally {
-      setIsLoading(false)
-      setIsSubmitting(false)
+  const stopRecording = () => {
+    if (mediaRecorder.current && isRecording) {
+      mediaRecorder.current.stop();
+      setIsRecording(false);
+      mediaRecorder.current.stream.getTracks().forEach(track => track.stop());
     }
-  }
+  };
 
   return (
-    <Card className={cn("w-full", className)}>
-      <CardContent className="p-4">
-        <Tabs defaultValue="file">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="file">Arquivo</TabsTrigger>
-            <TabsTrigger value="youtube">YouTube</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="file" className="mt-4">
-            <div className="space-y-4">
-              <input
-                ref={fileInputRef}
-                type="file"
-                accept="audio/*"
-                onChange={handleFileUpload}
-                className="hidden"
-                disabled={isLoading}
-              />
-              <Button 
-                className="w-full" 
-                disabled={isLoading}
-                onClick={() => fileInputRef.current?.click()}
-              >
-                {isLoading ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <>
-                    <Upload className="h-4 w-4 mr-2" />
-                    Enviar arquivo
-                  </>
-                )}
-              </Button>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="youtube" className="mt-4">
-            <form onSubmit={handleYoutubeUpload} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="youtube-url">URL do YouTube</Label>
-                <Input
-                  id="youtube-url"
-                  type="url"
-                  placeholder="https://youtube.com/watch?v=..."
-                  value={youtubeUrl}
-                  onChange={(e) => setYoutubeUrl(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
-              <Button 
-                type="submit" 
-                className="w-full relative" 
-                disabled={isLoading || !youtubeUrl || isSubmitting}
-              >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Baixando...
-                  </>
-                ) : (
-                  <>
-                    <Link className="h-4 w-4 mr-2" />
-                    Adicionar do YouTube
-                  </>
-                )}
-              </Button>
-            </form>
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  )
-}
+    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+      <Typography variant="h6">Controle de Voz</Typography>
+      
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+        <Button
+          variant="contained"
+          color={isRecording ? 'error' : 'primary'}
+          startIcon={isRecording ? <StopIcon /> : <MicIcon />}
+          onClick={isRecording ? stopRecording : startRecording}
+        >
+          {isRecording ? 'Parar Gravação' : 'Iniciar Gravação'}
+        </Button>
+      </Box>
+
+      <Box sx={{ width: 300 }}>
+        <Typography gutterBottom>Volume da Voz: {volume}</Typography>
+        <Slider
+          value={volume}
+          onChange={(_, newValue) => setVolume(newValue as number)}
+          min={0}
+          max={1}
+          step={0.1}
+          marks
+          valueLabelDisplay="auto"
+        />
+      </Box>
+    </Box>
+  );
+}; 
