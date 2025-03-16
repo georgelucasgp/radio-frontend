@@ -18,15 +18,13 @@ export function UploadButton() {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`/api/upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
         method: 'POST',
         body: formData,
       })
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer upload')
+        throw new Error('Erro ao fazer upload')
       }
 
       toast({

@@ -102,33 +102,30 @@ export function Queue() {
 
   const fetchQueue = useCallback(async () => {
     try {
-      setIsLoading(true)
-      const response = await fetch(`/api/queue`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/queue`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        cache: 'no-store',
-      })
+      });
 
       if (!response.ok) {
-        throw new Error('Falha ao obter a fila de reprodução')
+        throw new Error(`Erro ao buscar fila: ${response.status}`);
       }
 
-      const data: QueueResponse = await response.json()
-      setQueue(data.queue)
-      setCurrentTrack(data.current)
+      const data: QueueResponse = await response.json();
+      setQueue(data.queue);
+      setCurrentTrack(data.current);
     } catch (error) {
-      console.error('Erro ao buscar fila:', error)
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar a fila de reprodução',
+        description: 'Não foi possível carregar a fila',
         variant: 'destructive',
-      })
-      setQueue([])
-      setCurrentTrack(null)
+      });
+      setQueue([]);
+      setCurrentTrack(null);
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }, [toast]);
 

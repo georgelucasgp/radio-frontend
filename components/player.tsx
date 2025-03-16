@@ -29,12 +29,33 @@ export function Player() {
 
   // Atualiza informações da música atual
   useEffect(() => {
+    const fetchCurrentTrack = async () => {
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/now-playing`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`Erro ao buscar música atual: ${response.status}`);
+        }
+
+        const data = await response.json();
+        setCurrentTrack(data.track);
+      } catch (error) {
+        console.error('Erro ao buscar música atual:', error);
+        toast({
+          title: 'Erro',
+          description: 'Não foi possível carregar a música atual',
+          variant: 'destructive',
+        });
+      }
+    };
+
     // Atualiza a cada 5 segundos
-    const interval = setInterval(fetchNowPlaying, 5000);
-    
-    // Busca imediatamente ao montar o componente
-    fetchNowPlaying();
-    
+    const interval = setInterval(fetchCurrentTrack, 5000);
     return () => clearInterval(interval);
   }, [toast]);
 
@@ -81,30 +102,6 @@ export function Player() {
       audioRef.current.volume = newVolume;
     }
   };
-
-  const fetchNowPlaying = async () => {
-    try {
-      setIsLoading(true)
-      const response = await fetch(`/api/now-playing`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        cache: 'no-store',
-      })
-
-      if (!response.ok) {
-        throw new Error('Falha ao obter informações da música atual')
-      }
-
-      const data = await response.json()
-      setCurrentTrack(data.track)
-    } catch (error) {
-      console.error('Erro ao buscar música atual:', error)
-    } finally {
-      setIsLoading(false)
-    }
-  }
 
   return (
     <Card>

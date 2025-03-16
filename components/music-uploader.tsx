@@ -51,12 +51,6 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
     formData.append('file', file)
 
     try {
-      console.log('Enviando arquivo:', {
-        nome: file.name,
-        tamanho: file.size,
-        tipo: file.type
-      });
-
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
         method: 'POST',
         body: formData,
@@ -64,10 +58,9 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
         credentials: 'omit',
       })
 
-      const data = await response.json();
-      
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao fazer upload');
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao fazer upload');
       }
 
       console.log('Upload concluído com sucesso:', data);
@@ -108,7 +101,7 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Erro ao baixar do YouTube');
+        throw new Error(data.message || 'Erro ao baixar do YouTube');
       }
 
       toast({
