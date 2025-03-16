@@ -25,11 +25,27 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
     const file = e.target.files?.[0]
     if (!file) return
 
+    // Verifica se é um arquivo de áudio
+    if (!file.type.startsWith('audio/')) {
+      toast({
+        title: 'Erro!',
+        description: 'Por favor, selecione um arquivo de áudio válido',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
     const formData = new FormData()
     formData.append('file', file)
 
     try {
+      console.log('Enviando arquivo:', {
+        nome: file.name,
+        tamanho: file.size,
+        tipo: file.type
+      });
+
       const response = await fetch(`/api/upload`, {
         method: 'POST',
         body: formData,
@@ -40,6 +56,8 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
       if (!response.ok) {
         throw new Error(data.error || 'Erro ao fazer upload');
       }
+
+      console.log('Upload concluído com sucesso:', data);
 
       toast({
         title: 'Sucesso!',
