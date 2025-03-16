@@ -5,6 +5,7 @@ import { Mic, Square } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Slider } from '@/components/ui/slider'
+import { toast } from '@/components/ui/use-toast'
 
 export function VoiceRecorder() {
   const [isRecording, setIsRecording] = useState(false)
@@ -13,6 +14,9 @@ export function VoiceRecorder() {
   const streamRef = useRef<MediaStream | null>(null)
   const chunksRef = useRef<Blob[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [isSending, setIsSending] = useState(false)
+  const [isRecorded, setIsRecorded] = useState(false)
 
   const startRecording = async () => {
     try {
@@ -71,24 +75,8 @@ export function VoiceRecorder() {
           const audioBlob = new Blob(chunksRef.current, { type: mimeType })
           console.log(`Tamanho total do áudio: ${audioBlob.size} bytes`)
           
-          const formData = new FormData()
-          const fileExtension = mimeType.includes('ogg') ? 'ogg' : 'webm'
-          formData.append('audio', audioBlob, `audio.${fileExtension}`)
-          
-          console.log('Enviando áudio para o servidor...')
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/stream`, {
-            method: 'POST',
-            body: formData,
-          })
-
-          if (!response.ok) {
-            const error = await response.text()
-            console.error('Erro na resposta do servidor:', error)
-            throw new Error(`Erro do servidor: ${response.status} - ${error}`)
-          }
-
-          const result = await response.json()
-          console.log('Áudio enviado com sucesso:', result)
+          setAudioBlob(audioBlob)
+          setIsRecorded(true)
           chunksRef.current = [] // Limpa os chunks após envio bem-sucedido
         } catch (error) {
           console.error('Erro ao enviar áudio:', error)
@@ -130,6 +118,44 @@ export function VoiceRecorder() {
       startRecording()
     }
   }
+
+  const handleSendAudio = async () => {
+    if (!audioBlob) return;
+
+    setIsSending(true);
+    const formData = new FormData();
+    formData.append('audio', audioBlob);
+
+    try {
+      const response = await fetch(`/api/stream`, {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Erro ao enviar áudio');
+      }
+
+      toast({
+        title: 'Sucesso!',
+        description: 'Seu áudio foi enviado para a rádio',
+      });
+      
+      // Limpa o estado após envio bem-sucedido
+      setAudioBlob(null);
+      setIsRecorded(false);
+    } catch (error) {
+      console.error('Erro ao enviar áudio:', error);
+      toast({
+        title: 'Erro!',
+        description: error instanceof Error ? error.message : 'Falha ao enviar áudio',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -175,6 +201,18 @@ export function VoiceRecorder() {
             />
           </div>
         </div>
+        {isRecorded && (
+          <div className="mt-4">
+            <Button
+              variant="default"
+              onClick={handleSendAudio}
+              className="w-32"
+              disabled={isSending}
+            >
+              {isSending ? 'Enviando...' : 'Enviar'}
+            </Button>
+          </div>
+        )}
       </CardContent>
     </Card>
   )

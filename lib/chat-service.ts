@@ -16,7 +16,7 @@ class ChatService {
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
   private reconnectDelay = 2000; // 2 segundos
-  private apiUrl: string = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+  private apiUrl: string = process.env.API_URL || 'http://localhost:3000';
   private messageCache: Set<string> = new Set(); // Cache para evitar duplicação de mensagens
 
   constructor() {

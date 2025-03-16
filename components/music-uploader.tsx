@@ -30,14 +30,15 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
     formData.append('file', file)
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
+      const response = await fetch(`/api/upload`, {
         method: 'POST',
         body: formData,
       })
 
+      const data = await response.json();
+      
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao fazer upload');
+        throw new Error(data.error || 'Erro ao fazer upload');
       }
 
       toast({
@@ -64,7 +65,7 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
     setIsSubmitting(true)
     setIsLoading(true)
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/youtube`, {
+      const response = await fetch(`/api/youtube`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -75,7 +76,7 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.message || 'Erro ao baixar do YouTube');
+        throw new Error(data.error || 'Erro ao baixar do YouTube');
       }
 
       toast({

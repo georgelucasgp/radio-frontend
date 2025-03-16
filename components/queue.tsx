@@ -100,34 +100,37 @@ export function Queue() {
   
   const intervalRef = useRef<number | null>(null);
 
-  const fetchQueue = useCallback(async () => {
+  const fetchQueue = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/queue`, {
+      setIsLoading(true)
+      const response = await fetch(`/api/queue`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-      });
+        cache: 'no-store',
+      })
 
       if (!response.ok) {
-        throw new Error(`Erro ao buscar fila: ${response.status}`);
+        throw new Error('Falha ao obter a fila de reprodução')
       }
 
-      const data: QueueResponse = await response.json();
-      setQueue(data.queue);
-      setCurrentTrack(data.current);
+      const data: QueueResponse = await response.json()
+      setQueue(data.queue)
+      setCurrentTrack(data.current)
     } catch (error) {
+      console.error('Erro ao buscar fila:', error)
       toast({
         title: 'Erro',
-        description: 'Não foi possível carregar a fila',
+        description: 'Não foi possível carregar a fila de reprodução',
         variant: 'destructive',
-      });
-      setQueue([]);
-      setCurrentTrack(null);
+      })
+      setQueue([])
+      setCurrentTrack(null)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  }, [toast]);
+  }
 
   useEffect(() => {
     fetchQueue();
