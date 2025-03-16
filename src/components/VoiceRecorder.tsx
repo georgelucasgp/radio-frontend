@@ -27,7 +27,7 @@ export const VoiceRecorder: React.FC = () => {
         formData.append('volume', volume.toString());
 
         try {
-          const response = await fetch('http://localhost:3000/radio/voice', {
+          const response = await fetch(`/api/stream`, {
             method: 'POST',
             body: formData,
           });
