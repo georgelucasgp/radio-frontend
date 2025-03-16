@@ -35,6 +35,17 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
       return
     }
 
+    // Verifica o tamanho do arquivo (50MB)
+    const MAX_SIZE = 50 * 1024 * 1024;
+    if (file.size > MAX_SIZE) {
+      toast({
+        title: 'Erro!',
+        description: 'O arquivo não pode ser maior que 50MB',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setIsLoading(true)
     const formData = new FormData()
     formData.append('file', file)

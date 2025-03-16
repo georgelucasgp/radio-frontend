@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
+export const maxDuration = 60;
+
 // Configuração para permitir uploads grandes
 export const config = {
   api: {
@@ -24,43 +28,16 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Extrai o arquivo do FormData
-    console.log('[Upload Route] Extraindo arquivo do FormData...');
-    const formData = await request.formData();
-    const file = formData.get('file') as File;
-    
-    if (!file) {
-      console.error('[Upload Route] Nenhum arquivo recebido');
-      return NextResponse.json(
-        { error: 'Nenhum arquivo enviado' },
-        { status: 400 }
-      );
-    }
-
-    console.log('[Upload Route] Arquivo recebido:', {
-      nome: file.name,
-      tamanho: file.size,
-      tipo: file.type
-    });
-
-    // Verifica se é um arquivo de áudio
-    if (!file.type.startsWith('audio/')) {
-      console.error('[Upload Route] Tipo de arquivo inválido:', file.type);
-      return NextResponse.json(
-        { error: 'Apenas arquivos de áudio são permitidos' },
-        { status: 400 }
-      );
-    }
-
-    // Criar um novo FormData para enviar ao backend
-    const apiFormData = new FormData();
-    apiFormData.append('file', file);
-
-    // Enviar para o backend
-    console.log('[Upload Route] Enviando para o backend:', process.env.API_URL);
+    // Envia o stream diretamente para o backend
     const response = await fetch(`${process.env.API_URL}/radio/upload`, {
       method: 'POST',
-      body: apiFormData,
+      // Passa o body e headers da requisição original diretamente
+      body: request.body,
+      headers: {
+        'Content-Type': contentType,
+      },
+      // @ts-ignore - o tipo RequestInit não inclui duplex, mas é uma opção válida do Node.js fetch
+      duplex: 'half',
     });
 
     console.log('[Upload Route] Resposta do backend - Status:', response.status);
@@ -87,20 +64,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const responseText = await response.text();
-    console.log('[Upload Route] Resposta do backend:', responseText);
-    
-    let data;
-    try {
-      data = JSON.parse(responseText);
-    } catch (e) {
-      console.error('[Upload Route] Erro ao parsear resposta:', e);
-      return NextResponse.json(
-        { error: 'Erro ao processar resposta do servidor' },
-        { status: 500 }
-      );
-    }
-
+    const data = await response.json();
     console.log('[Upload Route] Upload concluído com sucesso');
     return NextResponse.json(data);
   } catch (error) {
