@@ -57,9 +57,11 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
         tipo: file.type
       });
 
-      const response = await fetch(`/api/upload`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
         method: 'POST',
         body: formData,
+        // Importante: não enviar credentials para evitar problemas de CORS
+        credentials: 'omit',
       })
 
       const data = await response.json();
@@ -94,12 +96,13 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
     setIsSubmitting(true)
     setIsLoading(true)
     try {
-      const response = await fetch(`/api/youtube`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/youtube`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ url: youtubeUrl }),
+        credentials: 'omit',
       })
 
       const data = await response.json();
