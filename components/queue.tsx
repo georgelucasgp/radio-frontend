@@ -100,7 +100,7 @@ export function Queue() {
   
   const intervalRef = useRef<number | null>(null);
 
-  const fetchQueue = async () => {
+  const fetchQueue = useCallback(async () => {
     try {
       setIsLoading(true)
       const response = await fetch(`/api/queue`, {
@@ -130,7 +130,7 @@ export function Queue() {
     } finally {
       setIsLoading(false)
     }
-  }
+  }, [toast]);
 
   useEffect(() => {
     fetchQueue();
