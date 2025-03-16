@@ -33,6 +33,7 @@ export function Player() {
       try {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/now-playing`, {
           method: 'GET',
+          credentials: 'omit',
           headers: {
             'Content-Type': 'application/json',
           },

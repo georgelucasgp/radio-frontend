@@ -33,6 +33,7 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
         method: 'POST',
         body: formData,
+        credentials: 'omit',
       })
 
       if (!response.ok) {
@@ -70,6 +71,7 @@ export function MusicUploader({ className }: MusicUploaderProps = {}) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ url: youtubeUrl }),
+        credentials: 'omit',
       })
 
       const data = await response.json();

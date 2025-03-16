@@ -78,6 +78,7 @@ export function VoiceRecorder() {
           console.log('Enviando áudio para o servidor...')
           const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/stream`, {
             method: 'POST',
+            credentials: 'omit',
             body: formData,
           })
 

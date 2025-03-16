@@ -20,6 +20,7 @@ export function UploadButton() {
     try {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/radio/upload`, {
         method: 'POST',
+        credentials: 'omit',
         body: formData,
       })
 
